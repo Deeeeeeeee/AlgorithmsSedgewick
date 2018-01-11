@@ -73,20 +73,30 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     @Override
     public Iterator<Item> iterator() {        // return an independent iterator over items in random order
-        return null;
+        return new RandomizedQueueIterator();
     }
 
-    private class RandomizedQueueIterator implements Iterator {
-        
+    private class RandomizedQueueIterator implements Iterator<Item> {
+        public RandomizedQueue<Item> queue;
 
-        @Override
-        public boolean hasNext() {
-            return false;
+        public RandomizedQueueIterator() {
+            queue = new RandomizedQueue<>();
+            Node<Item> node = first;
+            if (first != null) {
+                queue.enqueue(first.item);
+                while (node.next != null) {
+                }
+            }
         }
 
         @Override
-        public Object next() {
-            return null;
+        public boolean hasNext() {
+            return queue.size() > 0;
+        }
+
+        @Override
+        public Item next() {
+            return queue.dequeue();
         }
     }
 
@@ -94,7 +104,11 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         RandomizedQueue<String> queue = new RandomizedQueue<>();
         queue.enqueue("a");
         queue.enqueue("b");
-        System.out.println(queue.dequeue());
-        System.out.println(queue.dequeue());
+//        System.out.println(queue.dequeue());
+//        System.out.println(queue.dequeue());
+        Iterator<String> it = queue.iterator();
+        while (it.hasNext()) {
+            System.out.println(it.next());
+        }
     }
 }

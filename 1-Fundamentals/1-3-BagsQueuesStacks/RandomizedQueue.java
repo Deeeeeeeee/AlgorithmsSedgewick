@@ -85,6 +85,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             if (first != null) {
                 queue.enqueue(first.item);
                 while (node.next != null) {
+                    node = node.next;
+                    queue.enqueue(node.item);
                 }
             }
         }
@@ -100,10 +102,25 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("RandomizedQueue{");
+        Iterator<Item> it = iterator();
+        while (it.hasNext()) {
+            Item item = it.next();
+            sb.append(item + ", ");
+        }
+        if (sb.indexOf(", ") != -1) sb.delete(sb.length()-2, sb.length());
+        sb.append("}");
+        return sb.toString();
+    }
+
     public static void main(String[] args) {  // unit testing (optional)
         RandomizedQueue<String> queue = new RandomizedQueue<>();
         queue.enqueue("a");
         queue.enqueue("b");
+        queue.enqueue("c");
+        queue.enqueue("d");
 //        System.out.println(queue.dequeue());
 //        System.out.println(queue.dequeue());
         Iterator<String> it = queue.iterator();

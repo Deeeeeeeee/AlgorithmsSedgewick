@@ -60,6 +60,25 @@ public class Ex_1_3_03
         StdOut.printf("%s (Unprinted: %d; Stack: [ %s])\n",
                       i == n && s.isEmpty(), n - i, s);
     }
+
+    public static void check(int[] v) {
+        Stack<Integer> s = new Stack<>();
+        int i = 0,
+                j = 0,
+                n = v.length;
+        while (i < n && j <= n) {
+            if (!s.isEmpty() && s.peek() == v[i]) {
+                s.pop();
+                i++;
+            } else {
+                if (j < 10)
+                    s.push(j);
+                j++;
+            }
+        }
+        StdOut.printf("%s (Unprinted: %d; Stack: [ %s])\n",
+                i == n && s.isEmpty(), n - i, s);
+    }
     
     public static void main(String[] args)
     {
@@ -69,6 +88,7 @@ public class Ex_1_3_03
         for (int i = 0; i < a.length; i++)
             v[i] = Integer.parseInt(a[i]);
         
-        checkSequence(v);
+//        checkSequence(v);
+        check(v);
     }
 }

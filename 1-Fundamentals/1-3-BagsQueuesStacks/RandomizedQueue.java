@@ -1,5 +1,6 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import edu.princeton.cs.algs4.StdRandom;
 
 /**
  * Created by sealde on 1/10/18.
@@ -39,7 +40,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             delNode = first;
             first = delNode.next;
         } else {
-            Node<Item> preNode = get(delNum - 1);  //deleted node pre
+            Node<Item> preNode = get(delNum - 1);  // deleted node pre
             delNode = preNode.next;
             preNode.next = delNode.next;
         }
@@ -52,6 +53,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     public Item sample() {                    // return a random item (but do not remove it)
+        if (isEmpty()) throw new NoSuchElementException("there are no more items to sample.");
         return get(getRandomNum()).item;
     }
 
@@ -68,7 +70,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private class Node<Item> {
         private Item item;
-        private Node next;
+        private Node<Item> next;
     }
 
     @Override
@@ -98,7 +100,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
         @Override
         public Item next() {
+            if (queue.isEmpty()) throw new NoSuchElementException("there are no more items to return.");
             return queue.dequeue();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("this iterator unsupported remove operation.");
         }
     }
 
@@ -116,16 +124,17 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     public static void main(String[] args) {  // unit testing (optional)
-        RandomizedQueue<String> queue = new RandomizedQueue<>();
-        queue.enqueue("a");
-        queue.enqueue("b");
-        queue.enqueue("c");
-        queue.enqueue("d");
-//        System.out.println(queue.dequeue());
-//        System.out.println(queue.dequeue());
-        Iterator<String> it = queue.iterator();
-        while (it.hasNext()) {
-            System.out.println(it.next());
-        }
+        RandomizedQueue<Integer> rq = new RandomizedQueue<>();
+        rq.size();
+        rq.enqueue(3);
+        rq.sample();
+        rq.enqueue(24);
+        System.out.println(rq);
+        rq.dequeue();
+        System.out.println(rq);
+        rq.size();
+        rq.enqueue(34);
+        rq.dequeue();
+        rq.sample();
     }
 }

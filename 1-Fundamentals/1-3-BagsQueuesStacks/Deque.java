@@ -1,5 +1,6 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import edu.princeton.cs.algs4.StdOut;
 
 /**
  * Created by sealde on 1/7/18.
@@ -77,7 +78,7 @@ public class Deque<Item> implements Iterable<Item> {
         return new DequeIterator();
     }
 
-    private class DequeIterator implements Iterator {
+    private class DequeIterator implements Iterator<Item> {
         private Node<Item> current;
 
         public DequeIterator() {
@@ -109,7 +110,7 @@ public class Deque<Item> implements Iterable<Item> {
         private Node<Item> next;
     }
 
-    @Override
+/*    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Deque{");
         Iterator<Item> it = iterator();
@@ -120,7 +121,7 @@ public class Deque<Item> implements Iterable<Item> {
         if (sb.indexOf(", ") != -1) sb.delete(sb.length()-2, sb.length());
         sb.append("}");
         return sb.toString();
-    }
+    }*/
 
     public static void main(String[] args) {  // unit testing (optional)
         Deque<String> deque = new Deque<>();

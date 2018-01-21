@@ -6,7 +6,7 @@ public class Permutation {
         int times = Integer.parseInt(args[0]);
         String input = null;
 
-        // read string and put in queue
+        // read string and enqueue all string into queue
         RandomizedQueue<String> queue = new RandomizedQueue<>();
         while (!StdIn.isEmpty()) {
             input = StdIn.readString();

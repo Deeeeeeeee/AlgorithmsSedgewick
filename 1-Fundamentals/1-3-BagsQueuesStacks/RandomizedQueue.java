@@ -1,101 +1,92 @@
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import edu.princeton.cs.algs4.StdRandom;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
- * Created by sealde on 1/10/18.
+ * Created by sealde on 1/22/18.
  */
 public class RandomizedQueue<Item> implements Iterable<Item> {
-    private Node<Item> first;
-    private Node<Item> last;
+    private Item[] items;
     private int count = 0;
 
-    public RandomizedQueue() {                // construct an empty randomized queue
+    public RandomizedQueue() {
+        items = (Item[]) new Object[1];
     }
 
-    public boolean isEmpty() {                // is the randomized queue empty?
-        return first == null;
+    private RandomizedQueue(int capacity) {
+        items = (Item[]) new Object[capacity];
     }
 
-    public int size() {                       // return the number of items on the randomized queue
+    public boolean isEmpty() {
+        return count == 0;
+    }
+
+    public int size() {
         return count;
     }
 
-    public void enqueue(Item item) {          // add the item
+    public void enqueue(Item item) {
         if (item == null) throw new IllegalArgumentException("item should not be null.");
-        Node<Item> oldLast = last;
-        last = new Node<>();
-        last.item = item;
-        last.next = null;
-        if (isEmpty()) first = last;
-        else oldLast.next = last;
-        count++;
+        if (count == items.length) resize(2 * items.length);
+        items[count++] = item;
     }
 
-    public Item dequeue() {                   // remove and return a random item
+    public Item dequeue() {
         if (isEmpty()) throw new NoSuchElementException("there are no more items to remove.");
-        int delNum = getRandomNum();
-        Node<Item> delNode = null;
-        if (delNum == 0) {
-            delNode = first;
-            first = delNode.next;
-        } else {
-            Node<Item> preNode = get(delNum - 1);  // deleted node pre
-            delNode = preNode.next;
-            preNode.next = delNode.next;
-        }
-        Item item = delNode.item;
-        delNode.item = null;
-        delNode.next = null;
-        if (isEmpty()) last = null;
-        count--;
+        int randomNum = getRandomNum();
+        Item item = items[randomNum];
+        items[randomNum] = items[--count];
+        if (count > 0 && count == items.length/4) resize(items.length/2);
         return item;
     }
 
-    public Item sample() {                    // return a random item (but do not remove it)
-        if (isEmpty()) throw new NoSuchElementException("there are no more items to sample.");
-        return get(getRandomNum()).item;
+    public Item sample() {
+        if (isEmpty()) throw new NoSuchElementException("there are no more items to remove.");
+        return items[getRandomNum()];
     }
 
-    private Node<Item> get(int n) {
-        Node<Item> node = first;
-        for (int i = 0; i < n; i++)
-            node = node.next;
-        return node;
+    private void resize(int capacity) {
+        Item[] copy = (Item[]) new Object[capacity];
+        for (int i = 0; i < count; i++)
+            copy[i] = items[i];
+        items = copy;
     }
 
     private int getRandomNum() {
         return StdRandom.uniform(count);
     }
 
-    private class Node<Item> {
-        private Item item;
-        private Node<Item> next;
-    }
+/*    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("RandomizedLinkQueue{");
+        Iterator<Item> it = iterator();
+        while (it.hasNext()) {
+            Item item = it.next();
+            sb.append(item + ", ");
+        }
+        if (sb.indexOf(", ") != -1) sb.delete(sb.length()-2, sb.length());
+        sb.append("}");
+        return sb.toString();
+    }*/
 
     @Override
-    public Iterator<Item> iterator() {        // return an independent iterator over items in random order
+    public Iterator<Item> iterator() {
         return new RandomizedQueueIterator();
     }
 
     private class RandomizedQueueIterator implements Iterator<Item> {
-        public RandomizedQueue<Item> queue;
+        private RandomizedQueue<Item> queue;
 
         public RandomizedQueueIterator() {
-            queue = new RandomizedQueue<>();
-            Node<Item> node = first;
-            if (first != null) {
-                queue.enqueue(first.item);
-                while (node.next != null) {
-                    node = node.next;
-                    queue.enqueue(node.item);
-                }
-            }
+            queue = new RandomizedQueue<>(count);
+            for (int i = 0; i < count; i++)
+                queue.enqueue(items[i]);
         }
 
         @Override
         public boolean hasNext() {
-            return queue.size() > 0;
+            return !queue.isEmpty();
         }
 
         @Override
@@ -110,31 +101,41 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         }
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("RandomizedQueue{");
-        Iterator<Item> it = iterator();
-        while (it.hasNext()) {
-            Item item = it.next();
-            sb.append(item + ", ");
-        }
-        if (sb.indexOf(", ") != -1) sb.delete(sb.length()-2, sb.length());
-        sb.append("}");
-        return sb.toString();
+    public static void main(String[] args) {
+        /*RandomizedLinkQueue<String> queue = new RandomizedLinkQueue<>();
+        for (int i = 0; i < 1000; i++) {
+            System.out.println(queue);
+            if (StdRandom.bernoulli() && !queue.isEmpty()) {
+                System.out.println("dequeue:" + queue.dequeue());
+            } else {
+                System.out.println("enqueue:a" + i);
+                queue.enqueue("a" + i);
+            }
+        }*/
+/*        test(1000);
+        test(2000);
+        test(4000);
+        test(8000);
+        test(16000);
+        test(32000);
+        test(64000);
+        test(128000);
+        test(256000);*/
     }
 
-    public static void main(String[] args) {  // unit testing (optional)
-        RandomizedQueue<Integer> rq = new RandomizedQueue<>();
-        rq.size();
-        rq.enqueue(3);
-        rq.sample();
-        rq.enqueue(24);
-        System.out.println(rq);
-        rq.dequeue();
-        System.out.println(rq);
-        rq.size();
-        rq.enqueue(34);
-        rq.dequeue();
-        rq.sample();
-    }
+/*    private static void test(int times) {
+        RandomizedLinkQueue<String> queue = new RandomizedLinkQueue<>();
+        long begin = System.currentTimeMillis();
+        for (int i = 0; i < times; i++) {
+//            System.out.println(queue);
+            if (StdRandom.bernoulli() && !queue.isEmpty()) {
+                queue.dequeue();
+//                System.out.println("dequeue:" + queue.dequeue());
+            } else {
+//                System.out.println("enqueue:a" + i);
+                queue.enqueue("a" + i);
+            }
+        }
+        System.out.println(times + " cost:" + (System.currentTimeMillis() - begin));
+    }*/
 }

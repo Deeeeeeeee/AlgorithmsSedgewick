@@ -37,6 +37,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         int randomNum = getRandomNum();
         Item item = items[randomNum];
         items[randomNum] = items[--count];
+        items[count] = null;
         if (count > 0 && count == items.length/4) resize(items.length/2);
         return item;
     }
@@ -76,23 +77,28 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     private class RandomizedQueueIterator implements Iterator<Item> {
-        private RandomizedQueue<Item> queue;
+        private int[] seat;
+        private int c;
 
         public RandomizedQueueIterator() {
-            queue = new RandomizedQueue<>(count);
+            seat = new int[count];
             for (int i = 0; i < count; i++)
-                queue.enqueue(items[i]);
+                seat[i] = i;
+            c = count;
         }
 
         @Override
         public boolean hasNext() {
-            return !queue.isEmpty();
+            return c != 0;
         }
 
         @Override
         public Item next() {
-            if (queue.isEmpty()) throw new NoSuchElementException("there are no more items to return.");
-            return queue.dequeue();
+            if (c == 0) throw new NoSuchElementException("there are no more items to return.");
+            int randomNum = StdRandom.uniform(c);
+            Item item = items[seat[randomNum]];
+            seat[randomNum] = seat[--c];
+            return item;
         }
 
         @Override
@@ -102,7 +108,16 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     public static void main(String[] args) {
-        /*RandomizedLinkQueue<String> queue = new RandomizedLinkQueue<>();
+/*        RandomizedQueue<String> queue = new RandomizedQueue<>();
+        for (int i = 0; i < 10; i++)
+            queue.enqueue("a" + i);
+        Iterator<String> it1 = queue.iterator();
+        Iterator<String> it2 = queue.iterator();
+        while (it1.hasNext()) {
+            System.out.println("it1: " + it1.next());
+            System.out.println("it2: " + it2.next());
+        }*/
+/*        RandomizedQueue<String> queue = new RandomizedQueue<>();
         for (int i = 0; i < 1000; i++) {
             System.out.println(queue);
             if (StdRandom.bernoulli() && !queue.isEmpty()) {
@@ -124,15 +139,12 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
 /*    private static void test(int times) {
-        RandomizedLinkQueue<String> queue = new RandomizedLinkQueue<>();
+        RandomizedQueue<String> queue = new RandomizedQueue<>();
         long begin = System.currentTimeMillis();
         for (int i = 0; i < times; i++) {
-//            System.out.println(queue);
             if (StdRandom.bernoulli() && !queue.isEmpty()) {
                 queue.dequeue();
-//                System.out.println("dequeue:" + queue.dequeue());
             } else {
-//                System.out.println("enqueue:a" + i);
                 queue.enqueue("a" + i);
             }
         }

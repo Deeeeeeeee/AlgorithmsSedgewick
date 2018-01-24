@@ -1,21 +1,32 @@
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.StdRandom;
+
+import java.util.Iterator;
 
 public class Permutation {
     public static void main(String[] args) {
-        int times = Integer.parseInt(args[0]);
-        String input = null;
+        int k = Integer.parseInt(args[0]);
+        double count = 0;
 
-        // read string and enqueue all string into queue
         RandomizedQueue<String> queue = new RandomizedQueue<>();
         while (!StdIn.isEmpty()) {
-            input = StdIn.readString();
-            queue.enqueue(input);
+            count++;
+            if (queue.size() == k) {
+                if (StdRandom.bernoulli(k/count)) {
+                    queue.dequeue();
+                    queue.enqueue(StdIn.readString());
+                } else {
+                    StdIn.readString();
+                }
+            } else {
+                queue.enqueue(StdIn.readString());
+            }
         }
 
-        while (times > 0) {
-            StdOut.println(queue.dequeue());
-            times--;
+        Iterator<String> it = queue.iterator();
+        while (it.hasNext()) {
+            StdOut.println(it.next());
         }
     }
 }

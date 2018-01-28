@@ -1,23 +1,19 @@
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
-public class MergeSort {
+/**
+ * Created by sealde on 1/26/18.
+ */
+public class MergeBUSort {
     private static int mergeTimes = 0;
     private static int mergeArrayCount = 0;
-    private static int sortTimes = 0;
 
     public static void sort(Comparable[] a) {
-        Comparable[] aux = new Comparable[a.length];
-        sort(a, aux, 0, a.length - 1);
-    }
-
-    private static void sort(Comparable[] a, Comparable[] aux, int lo, int hi) {
-        sortTimes++;
-        if (hi <= lo) return;
-        int mid = lo + (hi - lo) / 2;
-        sort(a, aux, lo, mid);
-        sort(a, aux, mid + 1, hi);
-        merge(a, aux, lo, mid, hi);
+        int N = a.length;
+        Comparable[] aux = new Comparable[N];
+        for (int sz = 1; sz < N; sz = sz+sz)
+            for (int lo = 0; lo < N-sz; lo += sz+sz)
+                merge(a, aux, lo, lo+sz-1, Math.min(lo+sz+sz-1, N-1));
     }
 
     private static void merge(Comparable[] a, Comparable[] aux, int lo, int mid, int hi) {
@@ -64,13 +60,11 @@ public class MergeSort {
 
     public static void main(String[] args) {
         /*String[] inputs = StdIn.readAllStrings();
-        MergeSort.sort(inputs);
-        MergeSort.show(inputs);
-        StdOut.println("is sorted:" + MergeSort.isSorted(inputs));*/
-        SortCompare.timeRandomInput("MergeSort", 10900, 1);
+        MergeBUSort.sort(inputs);
+        MergeBUSort.show(inputs);
+        StdOut.println("is sorted:" + MergeBUSort.isSorted(inputs));*/
+        SortCompare.timeRandomInput("MergeBUSort", 10900, 1);
         StdOut.println("mergeTimes: " + mergeTimes);
         StdOut.println("mergeArrayCount: " + mergeArrayCount);
-        StdOut.println("sortTimes: " + sortTimes);
-        StdOut.println(10900 * (Math.log(10900)/Math.log(2)));
     }
 }

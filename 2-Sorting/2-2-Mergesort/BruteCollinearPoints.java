@@ -2,9 +2,6 @@ import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.In;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-
 /**
  * Created by sealde on 1/27/18.
  */
@@ -77,10 +74,7 @@ public class BruteCollinearPoints {
         return lineSegments;
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-
-        System.setIn(new FileInputStream(args[0]));
-
+    public static void main(String[] args) {
         // read the n points from a file
         In in = new In(args[0]);
         int n = in.readInt();

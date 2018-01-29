@@ -64,7 +64,7 @@ public class Point implements Comparable<Point> {
         double dy = that.y - this.y;
         double dx = that.x - this.x;
         if (dx == 0) return dy == 0 ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
-        return dy / dx;
+        return dy / dx + 0.0;
     }
 
     /**
@@ -81,9 +81,10 @@ public class Point implements Comparable<Point> {
      */
     public int compareTo(Point that) {
         /* YOUR CODE HERE */
-        if (this.y < that.y) return -1;
-        if (this.x < that.x) return -1;
-        else if (this.x == that.x) return 0;
+        int dy = that.y - this.y;
+        int dx = that.x - this.x;
+        if (dy > 0 || (dy == 0 && dx > 0)) return -1;
+        else if (dy == 0 && dx == 0) return 0;
         else return 1;
     }
 
@@ -142,6 +143,8 @@ public class Point implements Comparable<Point> {
         Point point1 = new Point(1, 1);
         Point point2 = new Point(2, 1);
         Point point3 = new Point(0, 1);
+        StdOut.println(point1.slopeTo(point2));
+        StdOut.println(point1.slopeTo(point3));
         StdOut.println(point1.slopeTo(point2) == point1.slopeTo(point3));
     }
 }

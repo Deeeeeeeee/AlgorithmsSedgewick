@@ -2,8 +2,6 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 /**
@@ -21,9 +19,9 @@ public class FastCollinearPoints {
             Point origin = points[i];
             Arrays.sort(aux, origin.slopeOrder());
             lo = 1;
-            slopeLo = aux[0].slopeTo(aux[1]);
-            for (int j = 1+1; j < N; j++) {
-                double slopeTemp = aux[0].slopeTo(aux[j]);
+            slopeLo = getOriginSlopeTo(aux, lo);
+            for (int j = lo+1; j < N; j++) {
+                double slopeTemp = getOriginSlopeTo(aux, j);
                 if (slopeLo != slopeTemp || j == N-1) {
                     if (j == N-1 && slopeLo == slopeTemp) j = N;
                     if (j - lo >= 3 && isStartedPoint(aux, lo, j-1)) {
@@ -49,6 +47,10 @@ public class FastCollinearPoints {
             copy[i] = points[i];
         }
         return copy;
+    }
+
+    private double getOriginSlopeTo(Point[] points, int i) {
+        return points[0].slopeTo(points[i]);
     }
 
     private boolean isStartedPoint(Point[] points, int lo, int hi) {
@@ -79,10 +81,7 @@ public class FastCollinearPoints {
         return lineSegments;
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-
-        System.setIn(new FileInputStream(args[0]));
-
+    public static void main(String[] args) {
         // read the n points from a file
         edu.princeton.cs.algs4.In in = new In(args[0]);
         int n = in.readInt();

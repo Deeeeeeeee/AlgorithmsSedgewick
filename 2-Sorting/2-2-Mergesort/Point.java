@@ -140,11 +140,13 @@ public class Point implements Comparable<Point> {
      */
     public static void main(String[] args) {
         /* YOUR CODE HERE */
-        Point point1 = new Point(1, 1);
-        Point point2 = new Point(2, 1);
-        Point point3 = new Point(0, 1);
-        StdOut.println(point1.slopeTo(point2));
-        StdOut.println(point1.slopeTo(point3));
-        StdOut.println(point1.slopeTo(point2) == point1.slopeTo(point3));
+//        Point point1 = new Point(1, 1);
+//        Point point2 = new Point(2, 1);
+//        Point point3 = new Point(0, 1);
+//        StdOut.println(point1.slopeTo(point2));
+//        StdOut.println(point1.slopeTo(point3));
+//        StdOut.println(point1.slopeTo(point2) == point1.slopeTo(point3));
+        StdOut.println(5.0/3);
+        StdOut.println(10.0/6);
     }
 }

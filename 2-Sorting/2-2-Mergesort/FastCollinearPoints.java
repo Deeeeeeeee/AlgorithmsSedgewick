@@ -1,7 +1,3 @@
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdDraw;
-import edu.princeton.cs.algs4.StdOut;
-
 import java.util.Arrays;
 
 /**
@@ -12,18 +8,18 @@ public class FastCollinearPoints {
     private int count = 0;
 
     public FastCollinearPoints(Point[] points) {    // finds all line segments containing 4 or more points
-        int N = points.length, lo;
+        int length = points.length, lo;
         double slopeLo;
         Point[] aux = copyInputs(points);
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < length; i++) {
             Point origin = points[i];
             Arrays.sort(aux, origin.slopeOrder());
             lo = 1;
             slopeLo = getOriginSlopeTo(aux, lo);
-            for (int j = lo+1; j < N; j++) {
+            for (int j = lo+1; j < length; j++) {
                 double slopeTemp = getOriginSlopeTo(aux, j);
-                if (slopeLo != slopeTemp || j == N-1) {
-                    if (j == N-1 && slopeLo == slopeTemp) j = N;
+                if (slopeLo != slopeTemp || j == length-1) {
+                    if (j == length-1 && slopeLo == slopeTemp) j = length;
                     if (j - lo >= 3 && isStartedPoint(aux, lo, j-1)) {
                         Arrays.sort(aux, lo, j);
                         addSegment(new LineSegment(aux[0], aux[j-1]));
@@ -39,13 +35,17 @@ public class FastCollinearPoints {
     private Point[] copyInputs(Point[] points) {
         if (points == null)
             throw new IllegalArgumentException("illegal argument.please input an array contain points.");
-        int N = points.length;
-        Point[] copy = new Point[N];
-        for (int i = 0; i < N; i++) {
+        int length = points.length;
+        Point[] copy = new Point[length];
+        for (int i = 0; i < length; i++) {
             if (points[i] == null)
                 throw new IllegalArgumentException("illegal argument.every point must be not null.");
             copy[i] = points[i];
         }
+        Arrays.sort(copy);
+        for (int i = 1; i < length; i++)
+            if (copy[i].compareTo(copy[i-1]) == 0)
+                throw new IllegalArgumentException("illegal argument.can not construct two repeated points.");
         return copy;
     }
 
@@ -78,35 +78,13 @@ public class FastCollinearPoints {
     }
 
     public LineSegment[] segments() {               // the line segments
-        return lineSegments;
+        LineSegment[] copy = new LineSegment[count];
+        for (int i = 0; i < count; i++)
+            copy[i] = lineSegments[i];
+        return copy;
     }
 
     public static void main(String[] args) {
-        // read the n points from a file
-        edu.princeton.cs.algs4.In in = new In(args[0]);
-        int n = in.readInt();
-        Point[] points = new Point[n];
-        for (int i = 0; i < n; i++) {
-            int x = in.readInt();
-            int y = in.readInt();
-            points[i] = new Point(x, y);
-        }
 
-        // draw the points
-        StdDraw.enableDoubleBuffering();
-        StdDraw.setXscale(0, 32768);
-        StdDraw.setYscale(0, 32768);
-        for (Point p : points) {
-            p.draw();
-        }
-        StdDraw.show();
-
-        // print and draw the line segments
-        FastCollinearPoints collinear = new FastCollinearPoints(points);
-        for (LineSegment segment : collinear.segments()) {
-            StdOut.println(segment);
-            segment.draw();
-        }
-        StdDraw.show();
     }
 }

@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 /**
  * Created by sealde on 1/27/18.
  */
@@ -5,32 +7,26 @@ public class BruteCollinearPoints {
     private LineSegment[] lineSegments = new LineSegment[2];
     private int count = 0;
 
+    /**
+     * point I, J, K, R; if not slopeIJ == slopeIK, then continue;
+     * if slopeIJ == slopeIK, then test slopeIJ == slopeIR
+     *
+     * then sort I, J, K, R, to find the min and max
+     * put the min point and max point into the lineSegments
+     * @param points
+     */
     public BruteCollinearPoints(Point[] points) {    // finds all line segments containing 4 points
         checkInput(points);
-        Point min = null;
-        Point max = null;
         for (int i = 0; i < points.length; i++) {
             Point pointI = points[i];
-            min = pointI;
-            max = pointI;
             for (int j = i + 1; j < points.length; j++) {
-                Point pointJ = points[j];
-                double slopeIJ = pointI.slopeTo(pointJ);
-                if (pointI.compareTo(pointJ) > 0) min = pointJ;
-                else max = pointJ;
+                double slopeIJ = pointI.slopeTo(points[j]);
                 for (int k = j + 1; k < points.length; k++) {
-                    Point pointK = points[k];
-                    if (slopeIJ != pointI.slopeTo(pointK)) {
-                        continue;
-                    }
-                    if (min.compareTo(pointK) > 0) min = pointK;
-                    if (max.compareTo(pointK) < 0) max = pointK;
+                    if (slopeIJ != pointI.slopeTo(points[k])) continue;
                     for (int r = k + 1; r < points.length; r++) {
-                        Point pointR = points[r];
-                        if (slopeIJ == pointI.slopeTo(pointR)) {
-                            if (min.compareTo(pointR) > 0) min = pointR;
-                            if (max.compareTo(pointR) < 0) max = pointR;
-                            this.addSegment(new LineSegment(min, max));
+                        if (slopeIJ == pointI.slopeTo(points[r])) {
+                            Point[] sortedPoints = copySortedPoints(points, i, j, k, r);
+                            this.addSegment(new LineSegment(sortedPoints[0], sortedPoints[3]));
                             break;
                         }
                     }
@@ -49,6 +45,16 @@ public class BruteCollinearPoints {
             for (int j = i + 1; j < points.length; j++)
                 if (points[i].compareTo(points[j]) == 0)
                     throw new IllegalArgumentException("illegal argument.can not construct two repeated points.");
+    }
+
+    private Point[] copySortedPoints(Point[] points, int i, int j, int k, int r) {
+        Point[] copy = new Point[4];
+        copy[0] = points[i];
+        copy[1] = points[j];
+        copy[2] = points[k];
+        copy[3] = points[r];
+        Arrays.sort(copy);
+        return copy;
     }
 
     private void addSegment(LineSegment segment) {

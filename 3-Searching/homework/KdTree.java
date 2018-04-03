@@ -1,5 +1,5 @@
-import edu.princeton.cs.algs4.*;
 import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
 
@@ -11,7 +11,6 @@ public class KdTree {
     private int size;
 
     public KdTree() {
-
     }
 
     public boolean isEmpty() {                     // is the set empty?
@@ -98,25 +97,39 @@ public class KdTree {
         if (kdNode == null) return;
         if (rect.contains(kdNode.point)) rangeSet.add(kdNode.point);
         if (kdNode.isVertical) {
-            if (!(kdNode.point.x() < rect.xmin())) range(rangeSet, rect, kdNode.lb);  // rect is not whole right kdNode
-            if (!(kdNode.point.x() > rect.xmax())) range(rangeSet, rect, kdNode.rt); // rect is not whole left kdNode
+            if (!(kdNode.point.x() < rect.xmin())) range(rangeSet, rect, kdNode.lb);    // rect is not whole right kdNode
+            if (!(kdNode.point.x() > rect.xmax())) range(rangeSet, rect, kdNode.rt);    // rect is not whole left kdNode
         } else if (!kdNode.isVertical) {
-            if (!(kdNode.point.y() < rect.ymin())) range(rangeSet, rect, kdNode.lb); // rect is not whole below kdNode
-            if (!(kdNode.point.y() > rect.ymax())) range(rangeSet, rect, kdNode.rt);  // rect is not whole above kdNode
+            if (!(kdNode.point.y() < rect.ymin())) range(rangeSet, rect, kdNode.lb);    // rect is not whole below kdNode
+            if (!(kdNode.point.y() > rect.ymax())) range(rangeSet, rect, kdNode.rt);    // rect is not whole above kdNode
         }
     }
 
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty
         if (root == null) return null;
-        return null;
+        return nearest(root, p, root.point);
     }
 
-    private Point2D nearest(KdNode kdNode, Point2D p) {
-        if (p.equals(kdNode.point)) return kdNode.point;
-        if (kdNode.isVertical) {
+    private Point2D nearest(KdNode kdNode, Point2D queryP, Point2D championP) {
+        if (kdNode == null) return championP;
+        if (queryP.equals(kdNode.point)) return kdNode.point;   // if find the query point, return this point
 
-        }
-        return null;
+        double distanceC = championP.distanceSquaredTo(queryP);
+        double distanceR = kdNode.rectHVDistanceSquaredTo(queryP);
+        /*
+         * if distance(champion point to query point) is closer than the distance(rectHV to query point)
+         * return champion point
+         * no need to explore the node(or its subtrees)
+         */
+        if (distanceC < distanceR) return championP;
+
+        double distanceK = kdNode.distanceSquaredTo(queryP);
+        if (distanceK <= distanceC) championP = kdNode.point;   // update champion point
+
+
+        championP = nearest(kdNode.lb, queryP, championP);
+        championP = nearest(kdNode.rt, queryP, championP);
+        return championP;
     }
 
     private static class KdNode {
@@ -145,13 +158,24 @@ public class KdTree {
             this.rect = new RectHV(xMin, yMin, xMax, yMax);
         }
 
-        private boolean isLeftOrBelow(Point2D p) { // p is on the left or below of this kdNode
+        /** this.point distance square to p: dx*dx + dy*dy **/
+        public double distanceSquaredTo(Point2D p) {
+            return this.point.distanceSquaredTo(p);
+        }
+
+        /** this.rect distance square to p: dx*dx + dy*dy **/
+        public double rectHVDistanceSquaredTo(Point2D p) {
+            return this.rect.distanceSquaredTo(p);
+        }
+
+        /** p is on the left or below of this kdNode **/
+        public boolean isLeftOrBelow(Point2D p) {
             return (isVertical && p.x() < this.point.x()) || (!isVertical && p.y() < this.point.y());
         }
     }
 
     public static void main(String[] args) {                 // unit testing of the methods (optional)
-        KdTree kdTree = new KdTree();
+        /*KdTree kdTree = new KdTree();
         kdTree.insert(new Point2D(0.336885, 0.310118));
         kdTree.insert(new Point2D(0.659829, 0.983324));
         kdTree.insert(new Point2D(0.235270, 0.337294));
@@ -164,9 +188,9 @@ public class KdTree {
         StdDraw.clear();
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.setPenRadius(0.01);
-        kdTree.draw();
+        kdTree.draw();*/
 
-/*        // initialize the data structures from file
+        // initialize the data structures from file
         String filename = args[0];
         In in = new In(filename);
         KdTree kdtree = new KdTree();
@@ -180,6 +204,6 @@ public class KdTree {
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.setPenRadius(0.01);
         kdtree.draw();
-        StdDraw.show();*/
+        StdDraw.show();
     }
 }

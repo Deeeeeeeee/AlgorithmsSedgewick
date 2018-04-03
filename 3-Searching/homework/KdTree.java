@@ -1,5 +1,4 @@
 import edu.princeton.cs.algs4.*;
-import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.StdDraw;
@@ -26,15 +25,45 @@ public class KdTree {
     public void insert(Point2D p) {             // add the point to the set (if it is not already in the set)
         if (p == null) throw new IllegalArgumentException("point should not be null");
         if (root == null) {
-            root = new KdNode(p, true);
+            root = new KdNode(p, true, new RectHV(0, 0, 1, 1));
             size++;
         } else {
-            root.add(p);        // add point
+            add(root, p);        // add point
+        }
+    }
+
+    private void add(KdNode kdNode, Point2D p) {        // add point
+        if (kdNode.point.equals(p)) return;             // if exist point, return
+        if (kdNode.isLeftOrBelow(p)) {                  // if kdNode will add point at left or below
+            if (kdNode.lb == null) {
+                kdNode.lb = new KdNode(p, kdNode, true);
+                size++;
+                return;
+            }
+            add(kdNode.lb, p);
+        } else {
+            if (kdNode.rt == null) {
+                kdNode.rt = new KdNode(p, kdNode, false);
+                size++;
+                return;
+            }
+            add(kdNode.rt, p);
         }
     }
 
     public boolean contains(Point2D p) {           // does the set contain point p?
-        return root.find(p);
+        return find(root, p);
+    }
+
+    private boolean find(KdNode kdNode, Point2D p) {
+        if (kdNode.point.equals(p)) return true;
+        if (kdNode.isLeftOrBelow(p)) {
+            if (kdNode.lb == null) return false;
+            else return find(kdNode.lb, p);
+        } else {
+            if (kdNode.rt == null) return false;
+            else return find(kdNode.rt, p);
+        }
     }
 
     public void draw() {                        // draw all points to standard draw
@@ -43,9 +72,20 @@ public class KdTree {
 
     private void draw(KdNode kdNode) {
         if (kdNode == null) return;
+
+        // draw the point
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenRadius(0.005);
         StdDraw.point(kdNode.point.x(), kdNode.point.y());
-        draw(kdNode.left);
-        draw(kdNode.right);
+
+        // draw the line
+        StdDraw.setPenColor(kdNode.isVertical ? StdDraw.RED : StdDraw.BLUE);
+        StdDraw.setPenRadius(0.001);
+        if (kdNode.isVertical) StdDraw.line(kdNode.point.x(), kdNode.rect.ymin(), kdNode.point.x(), kdNode.rect.ymax());
+        else StdDraw.line(kdNode.rect.xmin(), kdNode.point.y(), kdNode.rect.xmax(), kdNode.point.y());
+
+        draw(kdNode.lb);
+        draw(kdNode.rt);
     }
 
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle (or on the boundary)
@@ -57,12 +97,12 @@ public class KdTree {
     private void range(SET<Point2D> rangeSet, RectHV rect, KdNode kdNode) {
         if (kdNode == null) return;
         if (rect.contains(kdNode.point)) rangeSet.add(kdNode.point);
-        if (kdNode.isOdd) {
-            if (!(kdNode.point.x() < rect.xmin())) range(rangeSet, rect, kdNode.left);  // rect is not whole right kdNode
-            if (!(kdNode.point.x() > rect.xmax())) range(rangeSet, rect, kdNode.right); // rect is not whole left kdNode
-        } else if (!kdNode.isOdd) {
-            if (!(kdNode.point.y() < rect.ymin())) range(rangeSet, rect, kdNode.left); // rect is not whole below kdNode
-            if (!(kdNode.point.y() > rect.ymax())) range(rangeSet, rect, kdNode.right);  // rect is not whole above kdNode
+        if (kdNode.isVertical) {
+            if (!(kdNode.point.x() < rect.xmin())) range(rangeSet, rect, kdNode.lb);  // rect is not whole right kdNode
+            if (!(kdNode.point.x() > rect.xmax())) range(rangeSet, rect, kdNode.rt); // rect is not whole left kdNode
+        } else if (!kdNode.isVertical) {
+            if (!(kdNode.point.y() < rect.ymin())) range(rangeSet, rect, kdNode.lb); // rect is not whole below kdNode
+            if (!(kdNode.point.y() > rect.ymax())) range(rangeSet, rect, kdNode.rt);  // rect is not whole above kdNode
         }
     }
 
@@ -73,59 +113,40 @@ public class KdTree {
 
     private Point2D nearest(KdNode kdNode, Point2D p) {
         if (p.equals(kdNode.point)) return kdNode.point;
-        if (kdNode.isOdd) {
-//            double distance = p.
+        if (kdNode.isVertical) {
+
         }
         return null;
     }
 
-    private class KdNode {
-        private KdNode left;
-        private KdNode right;
+    private static class KdNode {
+        private KdNode lb;      // left or below
+        private KdNode rt;      // right or top
         private Point2D point;
         private RectHV rect;
-        private boolean isOdd;  // true: this.left => left, this.right => right; false: left => below, this.right => above
+        private boolean isVertical;  // true: this.lb => left, this.rt => right; false: lb => below, this.rt => above
 
-        public KdNode(Point2D p, boolean isOdd) {
+        public KdNode(Point2D p, boolean isVertical, RectHV rect) {
             this.point = p;
-            this.isOdd = isOdd;
+            this.isVertical = isVertical;
+            this.rect = rect;
         }
 
-        /** add point **/
-        public void add(Point2D p) {
-            add(this, p);
+        public KdNode(Point2D p, KdNode parentNode, boolean isLeftOrBelow) {
+            this.point = p;
+            this.isVertical = !parentNode.isVertical;
+
+            RectHV parentRect = parentNode.rect;
+            Point2D parentPoint = parentNode.point;
+            double xMin = (parentNode.isVertical && !isLeftOrBelow) ? parentPoint.x() : parentRect.xmin();
+            double xMax = (parentNode.isVertical && isLeftOrBelow) ? parentPoint.x() : parentRect.xmax();
+            double yMin = (!parentNode.isVertical && !isLeftOrBelow) ? parentPoint.y() : parentRect.ymin();
+            double yMax = (!parentNode.isVertical && isLeftOrBelow) ? parentPoint.y() : parentRect.ymax();
+            this.rect = new RectHV(xMin, yMin, xMax, yMax);
         }
 
-        private void add(KdNode kdNode, Point2D p) {
-            if (kdNode == null) {
-                if (isLeft(p)) this.left = new KdNode(p, !isOdd);
-                else this.right = new KdNode(p, !isOdd);
-                size++;
-                return;
-            }
-            if (kdNode.point.equals(p)) return;                 // if exist point, return
-            if (kdNode.isLeft(p)) kdNode.add(kdNode.left, p);   // if kdNode will add point at left
-            else kdNode.add(kdNode.right, p);
-        }
-
-        /** find point **/
-        public boolean find(Point2D p) {
-            return find(this, p);
-        }
-
-        private boolean find(KdNode kdNode, Point2D p) {
-            if (kdNode.point.equals(p)) return true;
-            if (kdNode.isLeft(p)) {
-                if (kdNode.left == null) return false;
-                else return kdNode.find(kdNode.left, p);
-            } else {
-                if (kdNode.right == null) return false;
-                else return kdNode.find(kdNode.right, p);
-            }
-        }
-
-        private boolean isLeft(Point2D p) { // p is on the left this kdNode
-            return (isOdd && p.x() < this.point.x()) || (!isOdd && p.y() < this.point.y());
+        private boolean isLeftOrBelow(Point2D p) { // p is on the left or below of this kdNode
+            return (isVertical && p.x() < this.point.x()) || (!isVertical && p.y() < this.point.y());
         }
     }
 

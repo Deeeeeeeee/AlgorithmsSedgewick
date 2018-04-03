@@ -51,6 +51,8 @@ public class KdTree {
     }
 
     public boolean contains(Point2D p) {           // does the set contain point p?
+        if (p == null) throw new IllegalArgumentException("point should not be null");
+        if (isEmpty()) return false;
         return find(root, p);
     }
 
@@ -71,23 +73,24 @@ public class KdTree {
 
     private void draw(KdNode kdNode) {
         if (kdNode == null) return;
+        double nodeX = kdNode.getX();
+        double nodeY = kdNode.getY();
 
         // draw the point
         StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.setPenRadius(0.005);
-        StdDraw.point(kdNode.point.x(), kdNode.point.y());
+        StdDraw.point(nodeX, nodeY);
 
         // draw the line
         StdDraw.setPenColor(kdNode.isVertical ? StdDraw.RED : StdDraw.BLUE);
-        StdDraw.setPenRadius(0.001);
-        if (kdNode.isVertical) StdDraw.line(kdNode.point.x(), kdNode.rect.ymin(), kdNode.point.x(), kdNode.rect.ymax());
-        else StdDraw.line(kdNode.rect.xmin(), kdNode.point.y(), kdNode.rect.xmax(), kdNode.point.y());
+        if (kdNode.isVertical) StdDraw.line(nodeX, kdNode.rect.ymin(), nodeX, kdNode.rect.ymax());
+        else StdDraw.line(kdNode.rect.xmin(), nodeY, kdNode.rect.xmax(), nodeY);
 
         draw(kdNode.lb);
         draw(kdNode.rt);
     }
 
     public Iterable<Point2D> range(RectHV rect) {            // all points that are inside the rectangle (or on the boundary)
+        if (rect == null) throw new IllegalArgumentException("rectHV should not be null");
         SET<Point2D> rangeSet = new SET<>();
         range(rangeSet, rect, root);
         return rangeSet;
@@ -96,16 +99,21 @@ public class KdTree {
     private void range(SET<Point2D> rangeSet, RectHV rect, KdNode kdNode) {
         if (kdNode == null) return;
         if (rect.contains(kdNode.point)) rangeSet.add(kdNode.point);
+
+        double nodeX = kdNode.getX();
+        double nodeY = kdNode.getY();
+
         if (kdNode.isVertical) {
-            if (!(kdNode.point.x() < rect.xmin())) range(rangeSet, rect, kdNode.lb);    // rect is not whole right kdNode
-            if (!(kdNode.point.x() > rect.xmax())) range(rangeSet, rect, kdNode.rt);    // rect is not whole left kdNode
-        } else if (!kdNode.isVertical) {
-            if (!(kdNode.point.y() < rect.ymin())) range(rangeSet, rect, kdNode.lb);    // rect is not whole below kdNode
-            if (!(kdNode.point.y() > rect.ymax())) range(rangeSet, rect, kdNode.rt);    // rect is not whole above kdNode
+            if (!(nodeX < rect.xmin())) range(rangeSet, rect, kdNode.lb);    // rect is not whole right kdNode
+            if (!(nodeX > rect.xmax())) range(rangeSet, rect, kdNode.rt);    // rect is not whole left kdNode
+        } else {
+            if (!(nodeY < rect.ymin())) range(rangeSet, rect, kdNode.lb);    // rect is not whole below kdNode
+            if (!(nodeY > rect.ymax())) range(rangeSet, rect, kdNode.rt);    // rect is not whole above kdNode
         }
     }
 
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty
+        if (p == null) throw new IllegalArgumentException("point should not be null");
         if (root == null) return null;
         return nearest(root, p, root.point);
     }
@@ -126,18 +134,22 @@ public class KdTree {
         double distanceK = kdNode.distanceSquaredTo(queryP);
         if (distanceK <= distanceC) championP = kdNode.point;   // update champion point
 
-
-        championP = nearest(kdNode.lb, queryP, championP);
-        championP = nearest(kdNode.rt, queryP, championP);
+        if (kdNode.isLeftOrBelow(queryP)) {
+            championP = nearest(kdNode.lb, queryP, championP);
+            championP = nearest(kdNode.rt, queryP, championP);
+        } else {
+            championP = nearest(kdNode.rt, queryP, championP);
+            championP = nearest(kdNode.lb, queryP, championP);
+        }
         return championP;
     }
 
     private static class KdNode {
         private KdNode lb;      // left or below
         private KdNode rt;      // right or top
-        private Point2D point;
-        private RectHV rect;
-        private boolean isVertical;  // true: this.lb => left, this.rt => right; false: lb => below, this.rt => above
+        private final Point2D point;
+        private final RectHV rect;
+        private final boolean isVertical;  // true: this.lb => left, this.rt => right; false: lb => below, this.rt => above
 
         public KdNode(Point2D p, boolean isVertical, RectHV rect) {
             this.point = p;
@@ -150,11 +162,12 @@ public class KdTree {
             this.isVertical = !parentNode.isVertical;
 
             RectHV parentRect = parentNode.rect;
-            Point2D parentPoint = parentNode.point;
-            double xMin = (parentNode.isVertical && !isLeftOrBelow) ? parentPoint.x() : parentRect.xmin();
-            double xMax = (parentNode.isVertical && isLeftOrBelow) ? parentPoint.x() : parentRect.xmax();
-            double yMin = (!parentNode.isVertical && !isLeftOrBelow) ? parentPoint.y() : parentRect.ymin();
-            double yMax = (!parentNode.isVertical && isLeftOrBelow) ? parentPoint.y() : parentRect.ymax();
+            double parentX = parentNode.point.x();
+            double parentY = parentNode.point.y();
+            double xMin = (parentNode.isVertical && !isLeftOrBelow) ? parentX : parentRect.xmin();
+            double xMax = (parentNode.isVertical && isLeftOrBelow) ? parentX : parentRect.xmax();
+            double yMin = (!parentNode.isVertical && !isLeftOrBelow) ? parentY : parentRect.ymin();
+            double yMax = (!parentNode.isVertical && isLeftOrBelow) ? parentY : parentRect.ymax();
             this.rect = new RectHV(xMin, yMin, xMax, yMax);
         }
 
@@ -172,38 +185,13 @@ public class KdTree {
         public boolean isLeftOrBelow(Point2D p) {
             return (isVertical && p.x() < this.point.x()) || (!isVertical && p.y() < this.point.y());
         }
-    }
 
-    public static void main(String[] args) {                 // unit testing of the methods (optional)
-        /*KdTree kdTree = new KdTree();
-        kdTree.insert(new Point2D(0.336885, 0.310118));
-        kdTree.insert(new Point2D(0.659829, 0.983324));
-        kdTree.insert(new Point2D(0.235270, 0.337294));
-        kdTree.insert(new Point2D(0.832668, 0.004321));
-        kdTree.insert(new Point2D(0.235270, 0.337294));
-        System.out.println(kdTree.contains(new Point2D(0.235270, 0.337294)));
-        System.out.println(kdTree.contains(new Point2D(0.336885, 0.310118)));
-        System.out.println(kdTree.contains(new Point2D(0.832668, 0.004321)));
-        System.out.println(kdTree.contains(new Point2D(0.832668, 0.004320)));
-        StdDraw.clear();
-        StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.setPenRadius(0.01);
-        kdTree.draw();*/
-
-        // initialize the data structures from file
-        String filename = args[0];
-        In in = new In(filename);
-        KdTree kdtree = new KdTree();
-        while (!in.isEmpty()) {
-            double x = in.readDouble();
-            double y = in.readDouble();
-            Point2D p = new Point2D(x, y);
-            kdtree.insert(p);
+        public double getX() {
+            return this.point.x();
         }
-        StdDraw.clear();
-        StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.setPenRadius(0.01);
-        kdtree.draw();
-        StdDraw.show();
+
+        public double getY() {
+            return this.point.y();
+        }
     }
 }

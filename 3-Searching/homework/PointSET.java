@@ -7,7 +7,7 @@ import edu.princeton.cs.algs4.StdDraw;
  * Created by sealde on 4/1/18.
  */
 public class PointSET {
-    private SET<Point2D> set;
+    private final SET<Point2D> set;
 
     public PointSET() {                              // construct an empty set of points
         this.set = new SET<>();
@@ -46,16 +46,16 @@ public class PointSET {
 
     public Point2D nearest(Point2D p) {            // a nearest neighbor in the set to point p; null if the set is empty
         Point2D nearestPoint2D = null;
-        double distance = Double.MAX_VALUE;
+        double distance = Double.POSITIVE_INFINITY;
 
-        if (this.set.isEmpty()){
+        if (this.set.isEmpty()) {
             return nearestPoint2D;
         }
 
         for (Point2D point : set) {
-            if (point.distanceTo(p) < distance){
+            if (point.distanceSquaredTo(p) < distance) {
                 nearestPoint2D = point;
-                distance = point.distanceTo(p);
+                distance = point.distanceSquaredTo(p);
             }
         }
         return nearestPoint2D;
